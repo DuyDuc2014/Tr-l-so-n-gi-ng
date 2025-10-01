@@ -31,5 +31,7 @@ declare global {
   interface Window {
     renderMathInElement?: (element: HTMLElement, options: object) => void;
     saveAs?: (blob: Blob, filename: string) => void;
+    jspdf: any;
+    html2canvas: any;
   }
 }

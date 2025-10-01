@@ -1,5 +1,6 @@
 
-import React, { useState, useCallback, useEffect } from 'react';
+
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import ControlPanel from './components/ControlPanel';
 import OutputPanel from './components/OutputPanel';
 import FeatureModal from './components/FeatureModal';
@@ -7,6 +8,7 @@ import ThemeSwitcher from './components/ThemeSwitcher';
 import { geminiService } from './services/geminiService';
 import { Mode, AppStatus, LessonData, ModalState, DisplaySettings } from './types';
 import { downloadAsDocx } from './utils/docxGenerator';
+import { downloadAsPdf } from './utils/pdfGenerator';
 
 function App() {
   const [mode, setMode] = useState<Mode>('auto');
@@ -48,6 +50,9 @@ function App() {
         fontColor: '',
     };
   });
+
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -120,6 +125,21 @@ function App() {
     }
   }, [lessonContent, lessonData]);
 
+  const handleDownloadPdf = useCallback(async () => {
+    if (!contentRef.current || isDownloadingPdf) return;
+
+    setIsDownloadingPdf(true);
+    try {
+      await downloadAsPdf(contentRef.current, lessonData);
+    } catch (error) {
+      console.error("Failed to generate PDF:", error);
+      alert("Không thể tạo tệp PDF. Vui lòng thử lại.");
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  }, [lessonData, isDownloadingPdf]);
+
+
   const closeModal = () => {
     setModalState(prev => ({ ...prev, isOpen: false }));
   };
@@ -148,9 +168,12 @@ function App() {
           onGenerateQuestions={handleGenerateQuestions}
           onSuggestTeachingMethods={handleSuggestTeachingMethods}
           onDownloadDocx={handleDownloadDocx}
+          onDownloadPdf={handleDownloadPdf}
+          isDownloadingPdf={isDownloadingPdf}
           displaySettings={displaySettings}
           setDisplaySettings={setDisplaySettings}
           theme={theme}
+          contentRef={contentRef}
         />
       </main>
       <FeatureModal modalState={modalState} onClose={closeModal} />

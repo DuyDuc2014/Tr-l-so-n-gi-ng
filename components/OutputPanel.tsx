@@ -1,5 +1,6 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { AppStatus, DisplaySettings } from '../types';
 import Loader from './Loader';
 import { parseMarkdownToHtml } from '../utils/markdownParser';
@@ -12,9 +13,12 @@ interface OutputPanelProps {
   onGenerateQuestions: () => void;
   onSuggestTeachingMethods: () => void;
   onDownloadDocx: () => void;
+  onDownloadPdf: () => void;
+  isDownloadingPdf: boolean;
   displaySettings: DisplaySettings;
   setDisplaySettings: React.Dispatch<React.SetStateAction<DisplaySettings>>;
   theme: 'light' | 'dark';
+  contentRef: React.RefObject<HTMLDivElement>;
 }
 
 const Placeholder: React.FC = () => (
@@ -37,10 +41,9 @@ const FONT_OPTIONS = [
 const MIN_FONT_SIZE = 10;
 const MAX_FONT_SIZE = 30;
 
-const OutputPanel: React.FC<OutputPanelProps> = ({ status, lessonContent, errorMessage, onSuggestActivities, onGenerateQuestions, onSuggestTeachingMethods, onDownloadDocx, displaySettings, setDisplaySettings, theme }) => {
+const OutputPanel: React.FC<OutputPanelProps> = ({ status, lessonContent, errorMessage, onSuggestActivities, onGenerateQuestions, onSuggestTeachingMethods, onDownloadDocx, onDownloadPdf, isDownloadingPdf, displaySettings, setDisplaySettings, theme, contentRef }) => {
   const [copyButtonText, setCopyButtonText] = useState('Sao chép vào Gamma');
-  const contentRef = useRef<HTMLDivElement>(null);
-
+  
   useEffect(() => {
     if (status === 'success' && contentRef.current) {
       if (window.renderMathInElement) {
@@ -55,7 +58,7 @@ const OutputPanel: React.FC<OutputPanelProps> = ({ status, lessonContent, errorM
         });
       }
     }
-  }, [status, lessonContent]);
+  }, [status, lessonContent, contentRef]);
   
   const handleCopy = () => {
     if (!lessonContent) return;
@@ -124,6 +127,12 @@ const OutputPanel: React.FC<OutputPanelProps> = ({ status, lessonContent, errorM
             </svg>
             Tạo Câu hỏi
           </button>
+          <button onClick={onDownloadPdf} disabled={!isActionable || isDownloadingPdf} className="inline-flex items-center bg-orange-500 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors">
+             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 mr-1.5">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v4.59L7.3 9.24a.75.75 0 00-1.1 1.02l3.25 3.5a.75.75 0 001.1 0l3.25-3.5a.75.75 0 10-1.1-1.02l-1.95 2.1V6.75z" clipRule="evenodd" />
+            </svg>
+            {isDownloadingPdf ? 'Đang tạo...' : 'Tải về (.pdf)'}
+          </button>
           <button onClick={onDownloadDocx} disabled={!isActionable} className="inline-flex items-center bg-sky-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-sky-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors">
              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 mr-1.5">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v4.59L7.3 9.24a.75.75 0 00-1.1 1.02l3.25 3.5a.75.75 0 001.1 0l3.25-3.5a.75.75 0 10-1.1-1.02l-1.95 2.1V6.75z" clipRule="evenodd" />
@@ -166,7 +175,7 @@ const OutputPanel: React.FC<OutputPanelProps> = ({ status, lessonContent, errorM
             </button>
         </div>
       </div>
-      <div className="relative h-[calc(100vh-320px)] overflow-y-auto">
+      <div className="relative h-[calc(100vh-370px)] overflow-y-auto">
         {status === 'loading' && <Loader />}
         {status === 'idle' && <Placeholder />}
         {status === 'success' && <div ref={contentRef} style={contentStyle} className="prose-custom" dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(lessonContent) }} />}
