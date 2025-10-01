@@ -1,0 +1,5 @@
+{
+  "name": "Trợ lý Soạn Bài giảng AI",
+  "description": "An AI-powered assistant to help Vietnamese teachers quickly and effectively create lesson plans using the Gemini API.",
+  "requestFramePermissions": []
+}
