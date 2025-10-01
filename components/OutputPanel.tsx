@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { AppStatus } from '../types';
+import { AppStatus, DisplaySettings } from '../types';
 import Loader from './Loader';
 import { parseMarkdownToHtml } from '../utils/markdownParser';
 
@@ -11,6 +12,9 @@ interface OutputPanelProps {
   onGenerateQuestions: () => void;
   onSuggestTeachingMethods: () => void;
   onDownloadDocx: () => void;
+  displaySettings: DisplaySettings;
+  setDisplaySettings: React.Dispatch<React.SetStateAction<DisplaySettings>>;
+  theme: 'light' | 'dark';
 }
 
 const Placeholder: React.FC = () => (
@@ -23,7 +27,17 @@ const Placeholder: React.FC = () => (
   </div>
 );
 
-const OutputPanel: React.FC<OutputPanelProps> = ({ status, lessonContent, errorMessage, onSuggestActivities, onGenerateQuestions, onSuggestTeachingMethods, onDownloadDocx }) => {
+const FONT_OPTIONS = [
+    { name: 'Mặc định (Be Vietnam Pro)', value: "'Be Vietnam Pro', sans-serif" },
+    { name: 'Arial', value: 'Arial, sans-serif' },
+    { name: 'Times New Roman', value: 'Times New Roman, serif' },
+    { name: 'Courier New', value: 'Courier New, monospace' },
+];
+  
+const MIN_FONT_SIZE = 10;
+const MAX_FONT_SIZE = 30;
+
+const OutputPanel: React.FC<OutputPanelProps> = ({ status, lessonContent, errorMessage, onSuggestActivities, onGenerateQuestions, onSuggestTeachingMethods, onDownloadDocx, displaySettings, setDisplaySettings, theme }) => {
   const [copyButtonText, setCopyButtonText] = useState('Sao chép vào Gamma');
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -56,11 +70,40 @@ const OutputPanel: React.FC<OutputPanelProps> = ({ status, lessonContent, errorM
     });
   };
 
+  const handleFontFamilyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setDisplaySettings(prev => ({ ...prev, fontFamily: e.target.value }));
+  };
+
+  const handleFontSizeChange = (amount: number) => {
+    setDisplaySettings(prev => ({
+      ...prev,
+      fontSize: Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, prev.fontSize + amount)),
+    }));
+  };
+  
+  const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setDisplaySettings(prev => ({ ...prev, fontColor: e.target.value }));
+  };
+
+  const resetColor = () => {
+    setDisplaySettings(prev => ({ ...prev, fontColor: '' }));
+  };
+
   const isActionable = status === 'success';
+
+  const contentStyle: React.CSSProperties = {
+    fontFamily: displaySettings.fontFamily,
+    fontSize: `${displaySettings.fontSize}px`,
+  };
+  if (displaySettings.fontColor) {
+      contentStyle.color = displaySettings.fontColor;
+  }
+
+  const colorPickerDefault = theme === 'dark' ? '#FFFFFF' : '#000000';
 
   return (
     <div className="w-full md:w-2/3 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg relative min-h-[400px]">
-      <div className="flex flex-wrap justify-between items-center border-b dark:border-gray-600 pb-2 mb-4 gap-4">
+      <div className="flex flex-wrap justify-between items-center border-b dark:border-gray-600 pb-2 mb-2 gap-4">
         <h2 className="text-xl font-semibold">Nội dung Giáo án</h2>
         <div className="flex flex-wrap gap-2">
           <button onClick={onSuggestActivities} disabled={!isActionable} className="inline-flex items-center bg-purple-500 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-purple-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors">
@@ -92,10 +135,41 @@ const OutputPanel: React.FC<OutputPanelProps> = ({ status, lessonContent, errorM
           </button>
         </div>
       </div>
-      <div className="relative h-[calc(100vh-250px)] overflow-y-auto">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 py-2 mb-2 border-b dark:border-gray-700">
+        <div className="flex items-center gap-2">
+            <label htmlFor="font-family" className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Phông chữ:</label>
+            <select id="font-family" value={displaySettings.fontFamily} onChange={handleFontFamilyChange} className="block w-full text-sm rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 py-1 pl-2 pr-8">
+                {FONT_OPTIONS.map(font => (
+                    <option key={font.value} value={font.value}>{font.name}</option>
+                ))}
+            </select>
+        </div>
+        
+        <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Cỡ chữ:</label>
+            <button onClick={() => handleFontSizeChange(-1)} disabled={displaySettings.fontSize <= MIN_FONT_SIZE} className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clipRule="evenodd" /></svg>
+            </button>
+            <span className="text-sm w-6 text-center">{displaySettings.fontSize}px</span>
+            <button onClick={() => handleFontSizeChange(1)} disabled={displaySettings.fontSize >= MAX_FONT_SIZE} className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" /></svg>
+            </button>
+        </div>
+
+        <div className="flex items-center gap-2">
+            <label htmlFor="font-color" className="text-sm font-medium text-gray-700 dark:text-gray-300">Màu chữ:</label>
+            <input type="color" id="font-color" value={displaySettings.fontColor || colorPickerDefault} onChange={handleColorChange} className="w-7 h-7 p-0.5 border border-gray-300 dark:border-gray-600 rounded cursor-pointer" />
+             <button onClick={resetColor} title="Reset màu" className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 110 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                </svg>
+            </button>
+        </div>
+      </div>
+      <div className="relative h-[calc(100vh-320px)] overflow-y-auto">
         {status === 'loading' && <Loader />}
         {status === 'idle' && <Placeholder />}
-        {status === 'success' && <div ref={contentRef} className="prose-custom" dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(lessonContent) }} />}
+        {status === 'success' && <div ref={contentRef} style={contentStyle} className="prose-custom" dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(lessonContent) }} />}
         {status === 'error' && (
            <div className="flex flex-col items-center justify-center h-full text-center p-4">
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-500/30 text-red-900 dark:text-red-300 p-6 rounded-lg shadow-xl w-full max-w-md">

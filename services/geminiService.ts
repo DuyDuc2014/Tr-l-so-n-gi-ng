@@ -11,8 +11,17 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 const generateLessonPlan = async (data: LessonData, mode: Mode): Promise<string> => {
   let userQuery = `Hãy tạo một giáo án chi tiết cho:\n- Môn học: ${data.subject}\n- Lớp: ${data.grade}\n- Chủ đề/Tên bài học: ${data.topic}`;
 
+  if (data.duration) {
+    userQuery += `\n- Thời lượng dự kiến: ${data.duration}`;
+  }
+
   if (mode === 'advanced') {
-    userQuery += `\nVới các tùy chọn nâng cao sau:\n- Mục tiêu bài học: ${data.objectives || 'Tự động xác định'}\n- Thời lượng dự kiến: ${data.duration || 'Tự động phân bổ'}\n- Đặc điểm học sinh: ${data.studentProfile || 'Lớp học bình thường'}\n- Yêu cầu/Gợi ý khác: ${data.extraRequirements || 'Không có'}`;
+    const advancedDetails = [
+      `- Mục tiêu bài học: ${data.objectives || 'Tự động xác định'}`,
+      `- Đặc điểm học sinh: ${data.studentProfile || 'Lớp học bình thường'}`,
+      `- Yêu cầu/Gợi ý khác: ${data.extraRequirements || 'Không có'}`
+    ].join('\n');
+    userQuery += `\nVới các tùy chọn nâng cao sau:\n${advancedDetails}`;
   }
 
   const response = await ai.models.generateContent({

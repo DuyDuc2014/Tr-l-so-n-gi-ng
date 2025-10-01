@@ -1,10 +1,11 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import ControlPanel from './components/ControlPanel';
 import OutputPanel from './components/OutputPanel';
 import FeatureModal from './components/FeatureModal';
 import ThemeSwitcher from './components/ThemeSwitcher';
 import { geminiService } from './services/geminiService';
-import { Mode, AppStatus, LessonData, ModalState } from './types';
+import { Mode, AppStatus, LessonData, ModalState, DisplaySettings } from './types';
 import { downloadAsDocx } from './utils/docxGenerator';
 
 function App() {
@@ -31,6 +32,22 @@ function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (localStorage.getItem('theme') as 'light' | 'dark') || 'light';
   });
+  
+  const [displaySettings, setDisplaySettings] = useState<DisplaySettings>(() => {
+    try {
+        const savedSettings = localStorage.getItem('displaySettings');
+        if (savedSettings) {
+            return JSON.parse(savedSettings);
+        }
+    } catch (error) {
+        console.error("Failed to parse display settings from localStorage", error);
+    }
+    return {
+        fontFamily: "'Be Vietnam Pro', sans-serif",
+        fontSize: 16,
+        fontColor: '',
+    };
+  });
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -38,6 +55,14 @@ function App() {
     root.classList.add(theme);
     localStorage.setItem('theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    try {
+        localStorage.setItem('displaySettings', JSON.stringify(displaySettings));
+    } catch (error) {
+        console.error("Failed to save display settings to localStorage", error);
+    }
+  }, [displaySettings]);
 
   const toggleTheme = () => {
     setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
@@ -123,6 +148,9 @@ function App() {
           onGenerateQuestions={handleGenerateQuestions}
           onSuggestTeachingMethods={handleSuggestTeachingMethods}
           onDownloadDocx={handleDownloadDocx}
+          displaySettings={displaySettings}
+          setDisplaySettings={setDisplaySettings}
+          theme={theme}
         />
       </main>
       <FeatureModal modalState={modalState} onClose={closeModal} />

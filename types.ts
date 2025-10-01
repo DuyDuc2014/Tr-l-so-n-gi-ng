@@ -21,6 +21,12 @@ export interface ModalState {
   error: string | null;
 }
 
+export interface DisplaySettings {
+  fontFamily: string;
+  fontSize: number; // in pixels
+  fontColor: string; // hex color, empty string for default
+}
+
 declare global {
   interface Window {
     renderMathInElement?: (element: HTMLElement, options: object) => void;

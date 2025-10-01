@@ -32,11 +32,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ mode, setMode, lessonData, 
             }
             break;
           case 'duration':
-            if (mode === 'advanced') {
-              const durationRegex = /^\d+\s*(tiết|phút)s?$/i;
-              if (!durationRegex.test(value)) {
-                return 'Định dạng hợp lệ: "90 phút" hoặc "2 tiết"';
-              }
+            const durationRegex = /^\d+\s*(tiết|phút)s?$/i;
+            if (!durationRegex.test(value)) {
+              return 'Định dạng hợp lệ: "90 phút" hoặc "2 tiết"';
             }
             break;
         }
@@ -133,6 +131,18 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ mode, setMode, lessonData, 
           </div>
            {errors.topic && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.topic}</p>}
         </div>
+        <div>
+          <label htmlFor="duration" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Thời lượng dự kiến</label>
+           <div className="relative mt-1 rounded-md shadow-sm">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-gray-400">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <input type="text" id="duration" value={lessonData.duration} onChange={handleInputChange} className={`block w-full rounded-md pl-10 focus:ring-1 dark:bg-gray-700 dark:placeholder-gray-400 dark:text-white ${errors.duration ? 'border-red-500 focus:border-red-500 focus:ring-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500'}`} placeholder="2 tiết (90 phút)" />
+          </div>
+          {errors.duration && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.duration}</p>}
+        </div>
       </div>
 
       <div className={`mt-6 pt-4 border-t dark:border-gray-600 space-y-4 transition-all duration-300 ${mode === 'advanced' ? 'opacity-100' : 'opacity-0 invisible h-0 overflow-hidden'}`}>
@@ -147,18 +157,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ mode, setMode, lessonData, 
             </div>
             <textarea id="objectives" rows={3} value={lessonData.objectives} onChange={handleInputChange} className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white pl-10 focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="Về kiến thức, Về năng lực, Về phẩm chất..."></textarea>
           </div>
-        </div>
-        <div>
-          <label htmlFor="duration" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Thời lượng dự kiến</label>
-           <div className="relative mt-1 rounded-md shadow-sm">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-gray-400">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            </div>
-            <input type="text" id="duration" value={lessonData.duration} onChange={handleInputChange} className={`block w-full rounded-md pl-10 focus:ring-1 dark:bg-gray-700 dark:placeholder-gray-400 dark:text-white ${errors.duration ? 'border-red-500 focus:border-red-500 focus:ring-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500'}`} placeholder="2 tiết (90 phút)" />
-          </div>
-          {errors.duration && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.duration}</p>}
         </div>
         <div>
           <label htmlFor="studentProfile" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Đặc điểm học sinh</label>
